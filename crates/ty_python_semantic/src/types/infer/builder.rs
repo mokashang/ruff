@@ -2369,6 +2369,16 @@ impl<'db, 'ast> TypeInferenceBuilder<'db, 'ast> {
             }
 
             Type::Intersection(intersection) => {
+                if let Some(alternatives) = intersection.finite_alternative_union(db) {
+                    return self.validate_attribute_assignment(
+                        target,
+                        alternatives,
+                        attribute,
+                        infer_value_ty,
+                        emit_diagnostics,
+                    );
+                }
+
                 let mut infer_value_ty = MultiInferenceGuard::new(infer_value_ty);
 
                 // TODO: Handle negative intersection elements
@@ -3035,6 +3045,15 @@ impl<'db, 'ast> TypeInferenceBuilder<'db, 'ast> {
             }
 
             Type::Intersection(intersection) => {
+                if let Some(alternatives) = intersection.finite_alternative_union(db) {
+                    return self.validate_attribute_deletion(
+                        target,
+                        alternatives,
+                        attribute,
+                        emit_diagnostics,
+                    );
+                }
+
                 if intersection.positive(db).iter().any(|element_ty| {
                     self.validate_attribute_deletion(target, *element_ty, attribute, false)
                 }) {
